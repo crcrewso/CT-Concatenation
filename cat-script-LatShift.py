@@ -1,4 +1,4 @@
-import dicom
+import pydicom
 import os
 import numpy
 import matplotlib.pyplot as plt
@@ -54,7 +54,7 @@ else:
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
         filepath=OriginalPath+f
-        plan=dicom.read_file(filepath)
+        plan=pydicom.read_file(filepath)
         if ("scout" in plan.SeriesDescription):
         	num_files=num_files-1
         	print("Scout file ("+f+") removed from folder, new total for folder is "+str(num_files)+" files")
@@ -73,7 +73,7 @@ hfound=0
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
         filepath=OriginalPath+f
-        plan=dicom.read_file(filepath)
+        plan=pydicom.read_file(filepath)
         if (("head" in plan.StudyDescription) or ("HTG" in plan.StudyDescription) or ("Head" in plan.StudyDescription) or ("HEAD" in plan.StudyDescription) or (plan.StudyDescription=="TBI")):
                 SeriesInstanceUID=plan.SeriesInstanceUID
                 StudyInstanceUID=plan.StudyInstanceUID
@@ -97,7 +97,7 @@ else:
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
         filepath=OriginalPath+f
-        plan=dicom.read_file(filepath)
+        plan=pydicom.read_file(filepath)
         if (("head" in plan.StudyDescription) or ("Head" in plan.StudyDescription) or ("HTG" in plan.StudyDescription) or ("HEAD" in plan.StudyDescription) or (plan.StudyDescription=="TBI")):
         	fcount=fcount+1
         	head_count=head_count+1
