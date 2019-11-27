@@ -4,7 +4,8 @@ import numpy
 import matplotlib.pyplot as plt
 import glob
 
-SCCImagepath="//sccvis2/va_data$/filedata/DICOM/"
+SCCImagepath="//svstoroprd01/VA_Transfer/DICOM/standard/"
+#SCCImagepath="//sccvis2/va_data$/filedata/DICOM/"
 SCCTBIImagepath="//sccsrv1/dept/RTClinic/TBI PROGRAM/Imaging Data/"
 #SCCTBIImagepath="//sccsrv1/Lap/"
 
