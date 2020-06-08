@@ -3,37 +3,42 @@ import os
 import numpy
 import matplotlib.pyplot as plt
 import glob
-
-SCCImagepath="//svstoroprd01/VA_Transfer/DICOM/standard/"
-#SCCImagepath="//sccvis2/va_data$/filedata/DICOM/"
-SCCTBIImagepath="//sccsrv1/dept/RTClinic/TBI PROGRAM/Imaging Data/"
-#SCCTBIImagepath="//sccsrv1/Lap/"
+import string
+import sys
 
 print("Welcome to the 2nd CT concatenation program programed at SCC\n")
+
+SCCImagepath="//svstoroprd01/VA_Transfer/DICOM/standard/"
+SCCTBIImagepath="//sccsrv1/dept/RTClinic/TBI PROGRAM/Imaging Data/"
+
+debug = (input("\nAre You testing this code (Y/N)")).lower()
+
+if 'y' in debug:
+    SCCImagepath=sys.argv[-2]
+    SCCTBIImagepath = sys.argv[-1]
+
+
 print("Enter in the patient number that you would like to concatenatate, the last 8 folders are listed below.\n")
 
-all_subdirs=[]
-for x in range(0, 8):
-    all_subdirs.append(sorted(glob.glob(os.path.join(SCCImagepath, '*/')), key=os.path.getmtime)[-x])
+all_subdirs = [ f.path for f in os.scandir(SCCImagepath) if f.is_dir() ]
 
-
-for x in range(0, 8):
-	fullname=all_subdirs[x]
-	shortname=fullname.split("\\")
-	if ('delete' in shortname[1])==False:
-		print(shortname[1])
+for subdir in all_subdirs:
+	fullname=subdir
+	dir, shortname = os.path.split(subdir)
+	if ('delete' in shortname[-2])==False:
+		print(shortname)
 
 
 var = input("\nPlease enter the patient's ID number: ")
 print ("You entered: "+ var) 
 
-OriginalPath=SCCImagepath+var+"/"
+OriginalPath=os.path.join(SCCImagepath, var)
 print("Path of folder is " +OriginalPath)
-pathout=SCCImagepath+var+"-Concantenated/"
-pathoutTBI=SCCTBIImagepath+var+"-Concantenated/"
+pathout=os.path.join(OriginalPath, "-Concantenated/")
+pathoutTBI=os.path.join(SCCTBIImagepath, var+"-Concantenated/")
 
-#print("Output path 1 is " +pathout)
-#print("Output path 2 is " +pathoutTBI)
+print("Output path 1 is " +pathout)
+print("Output path 2 is " +pathoutTBI)
 
 xshift = input("Enter in the laterial shift needed (cm): ")
 xshift_value=int(float (xshift)*10)
