@@ -7,7 +7,6 @@ import string
 import sys
 import tornado 
 from pathlib import Path
-#import vtkplotter as vtkp
 
 print("Welcome to the 2nd CT concatenation program programed at SCC\n")
 
@@ -134,7 +133,7 @@ for root, dirs, filenames in os.walk(OriginalPath):
         	plan.SliceLocation=-1*plan.SliceLocation
         	plan.ImagePositionPatient[2]=plan.SliceLocation
         	plan.ImagePositionPatient[0]=plan.ImagePositionPatient[0]+xshift_value
-        	print(plan.ImagePositionPatient)
+        	#print(plan.ImagePositionPatient)
         	plan.InstanceNumber=num_files-plan.InstanceNumber+1
         	a=plan.pixel_array
         	a=a[:,::-1]
@@ -177,7 +176,16 @@ if "old" in var.lower():
     plt.show()
 
 
-#elif "new" in var.lower():
-#    volume = vtkp.load(pathoutTBI)
-#    vtkp.show(volume, bg='white')
+elif "new" in var.lower():
+    import vtk
+    from PyQt5 import Qt
+    import vtkplotter as vtkp
+    volume = vtkp.load(pathout)
+    vp = vtkp.show(volume, interactive=0)
+    vp.interactor.Render()
+    vp.interactor.Start()
+
 sys.exit()
+
+
+
