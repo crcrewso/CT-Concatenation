@@ -7,12 +7,12 @@ import string
 import sys
 import tornado 
 from pathlib import Path
-import vtkplotter as vtkp
+#import vtkplotter as vtkp
 
 print("Welcome to the 2nd CT concatenation program programed at SCC\n")
 
-SCCImagepath="//svstoroprd01/VA_Transfer/DICOM/standard/"
-SCCTBIImagepath="//sccsrv1/dept/RTClinic/TBI PROGRAM/Imaging Data/"
+SCCImagepath=os.path.abspath(r"//svstoroprd01/VA_Transfer/DICOM/standard/")
+SCCTBIImagepath=os.path.abspath(r"\\svstoroprd01\VA_Transfer\DICOM\NonStandard")
 
 debug = (input("\nAre You testing this code (Y/N)")).lower()
 
@@ -134,7 +134,7 @@ for root, dirs, filenames in os.walk(OriginalPath):
         	plan.SliceLocation=-1*plan.SliceLocation
         	plan.ImagePositionPatient[2]=plan.SliceLocation
         	plan.ImagePositionPatient[0]=plan.ImagePositionPatient[0]+xshift_value
-        	#print(plan.ImagePositionPatient)
+        	print(plan.ImagePositionPatient)
         	plan.InstanceNumber=num_files-plan.InstanceNumber+1
         	a=plan.pixel_array
         	a=a[:,::-1]
@@ -158,18 +158,26 @@ import shutil
 from distutils.dir_util import copy_tree
 copy_tree(pathout, pathoutTBI)
 
-volume = vtkp.load(pathoutTBI)
-vtkp.show(volume, bg='white')
+print("TBI Images Saved")
+var = input("Would you like to plot (old/new)")
+
+if "old" in var.lower():
+    a=coronal_grid[:,1,:]
+    b=coronal_grid[:,2,:]
+    c=coronal_grid[:,3,:]
+    fig, axs = plt.subplots(3)
+    fig.suptitle('Array')
+    axs[0].imshow(b)
+    axs[1].imshow(a)
+    axs[2].imshow(c)
+    #plt.figure()
+    #plt.imshow(b)
+    #plt.imshow(a,b,c)
+    #imgplot = plt.imshow(c)
+    plt.show()
 
 
-
-#a=coronal_grid[:,1,:]
-#b=coronal_grid[:,2,:]
-#c=coronal_grid[:,3,:]
-
-#plt.figure()
-#plt.imshow(b)
-#plt.imshow(a,b,c)
-#imgplot = plt.imshow(c)
-#plt.show()
-exit()
+#elif "new" in var.lower():
+#    volume = vtkp.load(pathoutTBI)
+#    vtkp.show(volume, bg='white')
+sys.exit()

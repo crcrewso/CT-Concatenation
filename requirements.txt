@@ -1,12 +1,6 @@
 auto-py-to-exe
 matplotlib
 numpy
-pip-tools
-pipreqs
 pydicom
-PyInstaller
-pylint
-python-dateutil
+pypiwin32
 tornado
-vtkplotter
-wheel
