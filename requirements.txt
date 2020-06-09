@@ -1,0 +1,12 @@
+auto-py-to-exe
+matplotlib
+numpy
+pip-tools
+pipreqs
+pydicom
+PyInstaller
+pylint
+python-dateutil
+tornado
+vtkplotter
+wheel

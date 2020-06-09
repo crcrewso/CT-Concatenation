@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import glob
 import string
 import sys
+import tornado 
+from pathlib import Path
+import vtkplotter as vtkp
 
 print("Welcome to the 2nd CT concatenation program programed at SCC\n")
 
@@ -25,24 +28,24 @@ all_subdirs = [ f.path for f in os.scandir(SCCImagepath) if f.is_dir() ]
 for subdir in all_subdirs:
 	fullname=subdir
 	dir, shortname = os.path.split(subdir)
-	if ('delete' in shortname[-2])==False:
+	if ('delete' in shortname)==False:
 		print(shortname)
 
+while True:
+    var = (input("\nPlease enter the patient's ID number: ")).strip()
+    print ("You entered: "+ var) 
+    if (input ("Is this correct (y/n)")).lower() == 'y' :
+        break
 
-var = input("\nPlease enter the patient's ID number: ")
-print ("You entered: "+ var) 
-
-OriginalPath=os.path.join(SCCImagepath, var)
+OriginalPath=str(Path(os.path.join(SCCImagepath, var)).resolve())
 print("Path of folder is " +OriginalPath)
-pathout=os.path.join(OriginalPath, "-Concantenated/")
+pathout=OriginalPath+ "-Concantenated/"
 pathoutTBI=os.path.join(SCCTBIImagepath, var+"-Concantenated/")
 
 print("Output path 1 is " +pathout)
 print("Output path 2 is " +pathoutTBI)
 
-xshift = input("Enter in the laterial shift needed (cm): ")
-xshift_value=int(float (xshift)*10)
-print ("You entered: "+ str(xshift_value) +" mm") 
+
 
 
 if os.path.exists(OriginalPath):
@@ -56,10 +59,16 @@ else:
     print("Paitent folder "+var+" dose not exist!")
     exit()
 
+while True:
+    xshift = input("Enter in the laterial shift needed (cm): ")
+    xshift_value=int(float (xshift)*10)
+    print ("You entered: "+ str(xshift_value) +" mm") 
+    if (input ("Is this correct (y/n)")).lower() == 'y' :
+        break
 
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
-        filepath=OriginalPath+f
+        filepath=os.path.join(OriginalPath,f)
         plan=pydicom.read_file(filepath)
         if ("scout" in plan.SeriesDescription):
         	num_files=num_files-1
@@ -78,7 +87,7 @@ hfound=0
 
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
-        filepath=OriginalPath+f
+        filepath=os.path.join(OriginalPath,f)
         plan=pydicom.read_file(filepath)
         if (("head" in plan.StudyDescription) or ("HTG" in plan.StudyDescription) or ("Head" in plan.StudyDescription) or ("HEAD" in plan.StudyDescription) or (plan.StudyDescription=="TBI")):
                 SeriesInstanceUID=plan.SeriesInstanceUID
@@ -102,7 +111,7 @@ else:
 # Find the Series number for head scans
 for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
-        filepath=OriginalPath+f
+        filepath=os.path.join(OriginalPath,f)
         plan=pydicom.read_file(filepath)
         if (("head" in plan.StudyDescription) or ("Head" in plan.StudyDescription) or ("HTG" in plan.StudyDescription) or ("HEAD" in plan.StudyDescription) or (plan.StudyDescription=="TBI")):
         	fcount=fcount+1
@@ -133,7 +142,7 @@ for root, dirs, filenames in os.walk(OriginalPath):
         	plan.SOPInstanceUID=SOPInstanceUID_base+"."+str(plan.InstanceNumber)       	
         
         vv=plan.pixel_array*plan.RescaleSlope + plan.RescaleIntercept
-        filepathout=pathout+"CT."+plan.SOPInstanceUID
+        filepathout=os.path.join(pathout,"CT."+plan.SOPInstanceUID)
         plan.save_as(filepathout)
         z_index=plan.InstanceNumber-1
         coronal_grid[z_index,1,:]=vv[256]
@@ -146,17 +155,21 @@ print("Number of feet images processed: "+str(feet_count))
 # Copy files to TBI folder
 import shutil
 #shutil.copy2(pathout,pathoutTBI)
-
 from distutils.dir_util import copy_tree
-
 copy_tree(pathout, pathoutTBI)
-a=coronal_grid[:,1,:]
-b=coronal_grid[:,2,:]
-c=coronal_grid[:,3,:]
 
-plt.figure()
+volume = vtkp.load(pathoutTBI)
+vtkp.show(volume, bg='white')
+
+
+
+#a=coronal_grid[:,1,:]
+#b=coronal_grid[:,2,:]
+#c=coronal_grid[:,3,:]
+
+#plt.figure()
 #plt.imshow(b)
 #plt.imshow(a,b,c)
-imgplot = plt.imshow(c)
-plt.show()
+#imgplot = plt.imshow(c)
+#plt.show()
 exit()
