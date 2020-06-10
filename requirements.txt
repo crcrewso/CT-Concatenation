@@ -2,5 +2,9 @@ auto-py-to-exe
 matplotlib
 numpy
 pydicom
+PyQt5
 pypiwin32
 tornado
+vtk
+vtkplotter
+wheel

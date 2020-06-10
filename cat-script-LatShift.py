@@ -15,9 +15,13 @@ SCCTBIImagepath=os.path.abspath(r"\\svstoroprd01\VA_Transfer\DICOM\NonStandard")
 
 debug = (input("\nAre You testing this code (Y/N)")).lower()
 
-if 'y' in debug:
-    SCCImagepath=sys.argv[-2]
-    SCCTBIImagepath = sys.argv[-1]
+if ('y' in debug):
+    if len(sys.argv) > 2:
+        SCCImagepath=sys.argv[-2]
+        SCCTBIImagepath = sys.argv[-1]
+    else:
+        SCCImagepath = input("Source location: ")
+        SCCTBIImagepath = input("Save Location:")
 
 
 print("Enter in the patient number that you would like to concatenatate, the last 8 folders are listed below.\n")
