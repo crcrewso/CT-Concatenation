@@ -181,56 +181,54 @@ if "old" in var.lower():
 
 
 elif "new" in var.lower():
-    import vtk
-    from PyQt5 import Qt
-    import vtkplotter as vtkp
-    from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-    vol = vtkp.load(pathout)
-    if __name__ == "__main__":
-        app = Qt.QApplication(sys.argv)
-        window = MainWindow()
-        sys.exit(app.exec_())
+    def make_mesh(image, threshold=-300, step_size=1):
+        print "Transposing surface"
+        p = image.transpose(2,1,0)
+        
+        print "Calculating surface"
+        verts, faces, norm, val = measure.marching_cubes(p, threshold, step_size=step_size, allow_degenerate=True) 
+        return verts, faces
 
+    def plotly_3d(verts, faces):
+        x,y,z = zip(*verts) 
+        
+        print "Drawing"
+        
+        # Make the colormap single color since the axes are positional not intensity. 
+    #    colormap=['rgb(255,105,180)','rgb(255,255,51)','rgb(0,191,255)']
+        colormap=['rgb(236, 236, 212)','rgb(236, 236, 212)']
+        
+        fig = FF.create_trisurf(x=x,
+                            y=y, 
+                            z=z, 
+                            plot_edges=False,
+                            colormap=colormap,
+                            simplices=faces,
+                            backgroundcolor='rgb(64, 64, 64)',
+                            title="Interactive Visualization")
+        iplot(fig)
+
+    def plt_3d(verts, faces):
+        print "Drawing"
+        x,y,z = zip(*verts) 
+        fig = plt.figure(figsize=(10, 10))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Fancy indexing: `verts[faces]` to generate a collection of triangles
+        mesh = Poly3DCollection(verts[faces], linewidths=0.05, alpha=1)
+        face_color = [1, 1, 0.9]
+        mesh.set_facecolor(face_color)
+        ax.add_collection3d(mesh)
+
+        ax.set_xlim(0, max(x))
+        ax.set_ylim(0, max(y))
+        ax.set_zlim(0, max(z))
+        ax.set_axis_bgcolor((0.7, 0.7, 0.7))
+        plt.show()
+    v, f = make_mesh(SCCTBIImagepath, 350)
+    plt_3d(v, f)
 
 sys.exit()
 
 
 
-class MainWindow(Qt.QMainWindow):
-
-    def __init__(self, parent=None):
-        Qt.QMainWindow.__init__(self, parent)
-
-        self.frame = Qt.QFrame()
-
-        self.vl = Qt.QVBoxLayout()
-        self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
-        self.vl.addWidget(self.vtkWidget)
-
-        self.ren = vtk.vtkRenderer()
-        self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
-        self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
-
-        # Create source
-        source = vtk.vtkSphereSource()
-        source.SetCenter(0, 0, 0)
-        source.SetRadius(1000.0)
-
-        # Create a mapper
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(source.GetOutputPort())
-
-        # Create an actor
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-
-        self.ren.AddActor(actor)
-        self.ren.AddVolume(vol)
-
-        self.ren.ResetCamera()
-
-        self.frame.setLayout(self.vl)
-        self.setCentralWidget(self.frame)
-
-        self.show()
-        self.iren.Initialize()
