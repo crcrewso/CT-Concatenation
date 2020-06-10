@@ -181,18 +181,30 @@ if "old" in var.lower():
 
 
 elif "new" in var.lower():
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    import scipy.ndimage
+    from skimage import morphology
+    from skimage import measure
+    from skimage.transform import resize
+    from sklearn.cluster import KMeans
+    from plotly import __version__
+    from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
+    from plotly.tools import FigureFactory as FF
+    from plotly.graph_objs import *
+    init_notebook_mode(connected=True) 
+
     def make_mesh(image, threshold=-300, step_size=1):
-        print "Transposing surface"
+        print("Transposing surface")
         p = image.transpose(2,1,0)
         
-        print "Calculating surface"
+        print("Calculating surface")
         verts, faces, norm, val = measure.marching_cubes(p, threshold, step_size=step_size, allow_degenerate=True) 
         return verts, faces
 
     def plotly_3d(verts, faces):
         x,y,z = zip(*verts) 
         
-        print "Drawing"
+        print("Drawing")
         
         # Make the colormap single color since the axes are positional not intensity. 
     #    colormap=['rgb(255,105,180)','rgb(255,255,51)','rgb(0,191,255)']
@@ -209,7 +221,7 @@ elif "new" in var.lower():
         iplot(fig)
 
     def plt_3d(verts, faces):
-        print "Drawing"
+        print("Drawing")
         x,y,z = zip(*verts) 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
