@@ -1,3 +1,13 @@
+#TODO - Major reorganization 
+#Plot 2 overlapping 0 indexed slices
+#let user change x offset
+#maybe let them increment foot slice if alignment issue is noticed 
+#repeat until user wants to continue
+#calculate concatinated data set
+#show coronal  plot  and  let user set number of foot slices to remove if necessary 
+#remove and replot 
+#save final dataset with no duplicate slices 
+
 import pydicom
 import os
 import numpy
@@ -11,7 +21,7 @@ from pathlib import Path
 print("Welcome to the 2nd CT concatenation program programed at SCC\n")
 
 SCCImagepath=os.path.abspath(r"//svstoroprd01/VA_Transfer/DICOM/standard/")
-SCCTBIImagepath=os.path.abspath(r"\\svstoroprd01\VA_Transfer\DICOM\NonStandard")
+SCCTBIImagepath=os.path.abspath(r"//svstoroprd01/VA_Transfer/DICOM/NonStandard/")
 
 debug = (input("\nAre You testing this code (Y/N)")).lower()
 
@@ -24,7 +34,7 @@ if ('y' in debug):
         SCCTBIImagepath = input("Save Location:")
 
 
-print("Enter in the patient number that you would like to concatenatate, the last 8 folders are listed below.\n")
+print("Enter in the patient number that you would like to concatenatate\n")
 
 all_subdirs = [ f.path for f in os.scandir(SCCImagepath) if f.is_dir() ]
 
@@ -59,7 +69,7 @@ if os.path.exists(OriginalPath):
 	num_files = len([f for f in os.listdir(OriginalPath)if os.path.isfile(os.path.join(OriginalPath, f))])
 	print("That folder has "+str(num_files)+" total files")
 else:
-    print("Paitent folder "+var+" dose not exist!")
+    print("Patient folder "+var+" dose not exist!")
     exit()
 
 while True:
@@ -96,6 +106,7 @@ for root, dirs, filenames in os.walk(OriginalPath):
                 SeriesInstanceUID=plan.SeriesInstanceUID
                 StudyInstanceUID=plan.StudyInstanceUID
                 FrameOfReferenceUID=plan.FrameOfReferenceUID
+                
                 StudyID=plan.StudyID
                 SOPInstanceUID_base=".".join(plan.SOPInstanceUID.split(".")[:-1])
                 StudyTime=plan.StudyTime
@@ -116,6 +127,14 @@ for root, dirs, filenames in os.walk(OriginalPath):
     for f in filenames:
         filepath=os.path.join(OriginalPath,f)
         plan=pydicom.read_file(filepath)
+        plan.SeriesInstanceUID=SeriesInstanceUID
+        plan.StudyInstanceUID=StudyInstanceUID
+        plan.FrameOfReferenceUID=FrameOfReferenceUID
+        plan.StudyID=StudyID
+        plan.StudyTime=StudyTime
+        plan.SeriesTime=SeriesTime
+        plan.SeriesNumber=SeriesNumber
+
         if (("head" in plan.StudyDescription) or ("Head" in plan.StudyDescription) or ("HTG" in plan.StudyDescription) or ("HEAD" in plan.StudyDescription) or (plan.StudyDescription=="TBI")):
         	fcount=fcount+1
         	head_count=head_count+1
@@ -125,32 +144,23 @@ for root, dirs, filenames in os.walk(OriginalPath):
         elif (("feet" in plan.StudyDescription) or ("Feet" in plan.StudyDescription) or ("FOOT" in plan.StudyDescription)  or ("Foot" in plan.StudyDescription) or ("FEET" in plan.StudyDescription) or ("Ft" in plan.StudyDescription) or ("FTG" in plan.StudyDescription)):
         	feet_count=feet_count+1
         	fcount=fcount+1
-        	plan.SeriesInstanceUID=SeriesInstanceUID
-        	plan.StudyInstanceUID=StudyInstanceUID
-        	plan.FrameOfReferenceUID=FrameOfReferenceUID
-        	plan.StudyID=StudyID
-        	plan.StudyTime=StudyTime
-        	plan.SeriesTime=SeriesTime
-        	plan.SeriesNumber=SeriesNumber
         	if (plan.SliceLocation<0.0):
         		print("Negative foot image found at slice position :  " + str(plan.SliceLocation))
-        	plan.SliceLocation=-1*plan.SliceLocation
+        	plan.SliceLocation=-1*(plan.SliceLocation+plan.SliceThickness)
         	plan.ImagePositionPatient[2]=plan.SliceLocation
         	plan.ImagePositionPatient[0]=plan.ImagePositionPatient[0]+xshift_value
         	#print(plan.ImagePositionPatient)
         	plan.InstanceNumber=num_files-plan.InstanceNumber+1
-        	a=plan.pixel_array
-        	a=a[:,::-1]
-        	plan.PixelData=a.tostring()
-        	plan.SOPInstanceUID=SOPInstanceUID_base+"."+str(plan.InstanceNumber)       	
-        
+     	
+        a=plan.pixel_array
+        a=a[:,::-1]
+        plan.PixelData=a.tostring()
+        plan.SOPInstanceUID=SOPInstanceUID_base+"."+str(plan.InstanceNumber)  
         vv=plan.pixel_array*plan.RescaleSlope + plan.RescaleIntercept
         filepathout=os.path.join(pathout,"CT."+plan.SOPInstanceUID)
         plan.save_as(filepathout)
         z_index=plan.InstanceNumber-1
         coronal_grid[z_index,1,:]=vv[256]
-        coronal_grid[z_index,2,:]=vv[200]
-        coronal_grid[z_index,3,:]=vv[300]
 
 print("Number of head images processed: "+str(head_count))
 print("Number of feet images processed: "+str(feet_count))
@@ -162,25 +172,17 @@ from distutils.dir_util import copy_tree
 copy_tree(pathout, pathoutTBI)
 
 print("TBI Images Saved")
-var = input("Would you like to plot (old/new)")
+var = input("Would you like to plot (old/plotly/vtk)")
 
 if "old" in var.lower():
     a=coronal_grid[:,1,:]
-    b=coronal_grid[:,2,:]
-    c=coronal_grid[:,3,:]
-    fig, axs = plt.subplots(3)
+    fig, axs = plt.subplots(1)
     fig.suptitle('Array')
-    axs[0].imshow(b)
-    axs[1].imshow(a)
-    axs[2].imshow(c)
-    #plt.figure()
-    #plt.imshow(b)
-    #plt.imshow(a,b,c)
-    #imgplot = plt.imshow(c)
+    axs[0].imshow(a)
     plt.show()
 
 
-elif "new" in var.lower():
+elif "plotly" in var.lower():
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     import scipy.ndimage
     from skimage import morphology
@@ -239,6 +241,12 @@ elif "new" in var.lower():
         plt.show()
     v, f = make_mesh(SCCTBIImagepath, 350)
     plt_3d(v, f)
+
+elif "vtk" in var.lower():
+    import vtkplotter
+    volume = vtkplotter.load(SCCImagepath, threshold=-500)
+    vtkplotter.show(volume, axes=True)
+
 
 sys.exit()
 
